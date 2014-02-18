@@ -50,7 +50,7 @@ public class UrlService {
 		}
 	};
 	//静的定数
-	public 	final String ERROR_STRINGS = "ERROR:";//Error Strings
+//	public 	final String ERROR_STRINGS = "ERROR:";//Error Strings
 	private final String HTTPHEAD_GETCOOKIE = "Set-Cookie"; //受信httpヘッダーからcookieを取り出すためのキー
 	private final String HTTPHEAD_SETCOOKIE = "Cookie";//送信httpヘッダーへcookieをセットするためのキー
 	/**
@@ -200,27 +200,21 @@ public class UrlService {
 	}
 	/**
 	 * HTTP Fetchのレスポンスからコンテキストを取り出す。
-	 * リターンコード200または201以外は前置詞をつけてエラー番号を返す。
 	 * @param response HTTPResponse
 	 * @return HashMap<Result,String>
 	 * 		   key:RETCODE リターンコード。　
-	 * 		   key:BODY　ボディ。 リターンコード200以外はエラー前置詞をつけてコードを返す。
+	 * 		   key:BODY　ボディ。 
 	 * 		　　key:COOKIE 外部ホストから返されたcookie
 	 */
 	private  HashMap<Result,String> getResponseVals(HTTPResponse response) {
 		HashMap<Result,String> returns = new HashMap<Result,String>();
 		int retcode = response.getResponseCode();
 		returns.put(Result.RETCODE, String.valueOf(retcode));
-		if(retcode == 200 || retcode == 201){
-			try {
-				returns.put(Result.BODY,new String(response.getContent(),"UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				// TODO 自動生成された catch ブロック
-				e.printStackTrace();
-			}
-	    }else{
-	    	returns.put(Result.BODY,ERROR_STRINGS + String.valueOf(response.getResponseCode()));
-	    }
+		try {
+			returns.put(Result.BODY,new String(response.getContent(),"UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		returns.put(Result.COOKIE,getCookie(response));
 		return returns;
 	}
