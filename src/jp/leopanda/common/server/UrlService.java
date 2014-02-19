@@ -96,9 +96,9 @@ public class UrlService {
 		try {
 			url = new URL(urlStr);
 		} catch (MalformedURLException e) {
-			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
-		}
+	}
+
 		FetchOptions fetchOptions = setCommonFetchOptions();	
 		HTTPRequest request = new HTTPRequest(url, HTTPMethod.GET, fetchOptions);
 		Iterator<String> it = header.keySet().iterator();

@@ -33,9 +33,18 @@ import com.google.gwt.user.client.ui.TextBox;
  *  http://(GAEのURI)/(プロジェクト名)/oauthWindow.html
  *  を登録する。
  * 	3)gwt.xml上に　<inherits name="jp.leopanda.common.Common" />を追加する。
-  * 4)cssに .login-xxxを追加する。(このパッケージのwar上にあるサンプルを参照）
- * ことがそれぞれ必要。
- * 	 
+ *  4)cssに .login-xxxを追加する。(このパッケージのwar上にあるサンプルを参照）
+ *  ことがそれぞれ必要。
+ *  5)web.xmlに以下を記述
+ *  <servlet>
+ *   <servlet-name>HostAuthServiceImpl</servlet-name>
+ *   <servlet-class>jp.leopanda.common.server.HostAuthServiceImpl</servlet-class>
+ *  </servlet>
+ *  <servlet-mapping>
+ *   <servlet-name>HostAuthServiceImpl</servlet-name>
+ *   <url-pattern>/(アプリ固有のパス)/HostAuthService</url-pattern>
+ *  </servlet-mapping>
+ *
  * プロジェクトのEntry pointにあるOnModuleload()メソッドから呼ばれることを想定している。
  * 呼び出し例)　 GoogleLoginBar loginBar = new GoogleLoginBar(clientID,
  * 			   							GoogleLoginBar.addScope(BLOGGER)+
