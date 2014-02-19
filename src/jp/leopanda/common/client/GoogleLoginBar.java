@@ -37,8 +37,9 @@ import com.google.gwt.user.client.ui.TextBox;
  * ことがそれぞれ必要。
  * 	 
  * プロジェクトのEntry pointにあるOnModuleload()メソッドから呼ばれることを想定している。
- * 呼び出し例)　 GoogleLoginBar loginBar = new GoogleLoginBar(clientID);　　　　　　
- * 			   loginBar.setPanel(addScope(BLOGGER)+addScope(BLOGGERV2));
+ * 呼び出し例)　 GoogleLoginBar loginBar = new GoogleLoginBar(clientID,
+ * 			   							GoogleLoginBar.addScope(BLOGGER)+
+ * 										GoogleLoginBar.addScope(BLOGGERV2));
  * 			　　loginBar.addListerner(new LogInControl());
  * 			   RootPanel.get("loginBarContainer").add(loginBar);
  *
@@ -48,10 +49,6 @@ import com.google.gwt.user.client.ui.TextBox;
  */
 @SuppressWarnings("deprecation")
 public class GoogleLoginBar extends HorizontalPanel{
-	//コンストラクタ
-	public GoogleLoginBar(String clientId){
-		GOOGLE_CLIENT_ID = clientId;
-	}	
 	//画面構成要素
 	private	Anchor signInLink = new Anchor("");
 	private	Image loginImage = new Image();
@@ -83,11 +80,11 @@ public class GoogleLoginBar extends HorizontalPanel{
 		}
 	}
 	//googleサービスのスコープ作成補助
-	public String addScope(ScopeName scopeName){
+	public static String addScope(ScopeName scopeName){
 		return " " + scopeName.scopeUrl + " ";
 	}
 	//未登録のスコープ作成補助
-	public String addCustomScope(String customScopeUrl){
+	public static String addCustomScope(String customScopeUrl){
 		return " " + customScopeUrl + " ";
 	}
 	
@@ -100,9 +97,12 @@ public class GoogleLoginBar extends HorizontalPanel{
 		public InfoEvent(Object arg) {super(arg);}
 	}
 	/**
-	 * Googleログインバーのセットアップ
+	 * Googleログインバー　コンストラクタ
+	 * @param clientId String googleクライアントID
+	 * @param apiScope String APIスコープ
 	 */
-	public void setPanel(final String apiScope){
+	public GoogleLoginBar(String clientId,final String apiScope){
+		GOOGLE_CLIENT_ID = clientId;
 		//ログインバーの表示構成
 		signInLink.getElement().setClassName("login-area");
 		signInLink.setTitle("sign out");
