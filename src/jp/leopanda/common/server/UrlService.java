@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.google.appengine.api.urlfetch.FetchOptions;
 import com.google.appengine.api.urlfetch.HTTPHeader;
@@ -18,12 +19,12 @@ import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
 /**
  * 外部サーバーへのHTTP接続をサポートする。
- * java.net.HttpConnectionではGAE上でCookieのハンドリングがうまくできなかったため、
+ * java.net.HttpUrlConnectionではGAE上でCookieのハンドリングがうまくできなかったため、
  * com.google.appengine.api.urlfetchを使用している。
  * 
  * ex)呼び出し方はDecoratedに
  *  	UrlService urlService = new UrlService();
- * 		HashMap<Result,String> results = 
+ * 		Map<Result,String> results = 
  * 						urlService.fetchGet(UrlString,
  * 									addCookie(CookieString,
  * 									addToken(tokenString,
@@ -56,8 +57,8 @@ public class UrlService {
 	/**
 	 * HTTPヘッダの設定
 	 */
-	public HashMap<String,String> setHeader(ContentType contentType){
-		HashMap<String, String> Header = new HashMap<String,String>();
+	public Map<String,String> setHeader(ContentType contentType){
+		Map<String, String> Header = new HashMap<String,String>();
 		Header.put("Content-type", contentType.value);
 		return Header;
 	}
@@ -67,7 +68,7 @@ public class UrlService {
 	 * @param header
 	 * @return
 	 */
-	public HashMap<String,String> addToken(String token,HashMap<String,String> header){
+	public Map<String,String> addToken(String token,Map<String,String> header){
 		header.put("Authorization", "Bearer "+ token);
 		return header;
 	}
@@ -77,35 +78,25 @@ public class UrlService {
 	 * @param header
 	 * @return
 	 */
-	public HashMap<String,String> addCookie(String cookieString,HashMap<String,String> header){
+	public Map<String,String> addCookie(String cookieString,Map<String,String> header){
 		header.put(HTTPHEAD_SETCOOKIE, cookieString);
 		return header;
 	}
 	/**
 	 * HTTP Get処理
 	 * @param urlStr String 外部ホストのURL
-	 * @param HashMap<String,String> header  HTTPヘッダ
-	 * @return HashMap<Result,String>
+	 * @param Map<String,String> header  HTTPヘッダ
+	 * @return Map<Result,String>
 	 * 		   key:RETCODE リターンコード。　
 	 * 		   key:BODY　ボディ。 リターンコード200以外はエラー前置詞をつけてコードを返す。
 	 * 		　　key:COOKIE 外部ホストから返されたcookie
 	 */
-	public  HashMap<Result,String> fetchGet(String urlStr,HashMap<String,String> header){
+	public  Map<Result,String> fetchGet(String urlStr,Map<String,String> header){
 		URLFetchService ufs = URLFetchServiceFactory.getURLFetchService();
-		URL url = null;
-		try {
-			url = new URL(urlStr);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-	}
-
+		URL url = getUrl(urlStr);
 		FetchOptions fetchOptions = setCommonFetchOptions();	
-		HTTPRequest request = new HTTPRequest(url, HTTPMethod.GET, fetchOptions);
-		Iterator<String> it = header.keySet().iterator();
-		while (it.hasNext()) {
-			String key = it.next();
-			request.addHeader(new HTTPHeader(key, header.get(key)));
-		}
+		HTTPRequest request = 
+				setRequestHeader(header, new HTTPRequest(url, HTTPMethod.GET, fetchOptions));
 		HTTPResponse response = null;
 		try {
 			response = ufs.fetch(request);
@@ -120,32 +111,23 @@ public class UrlService {
 	 * エンコード済みの文字列を外部ホストへポストする。
 	 * 
 	 * @param urlStr　String 外部ホストのURL
-	 * @param postStr String エンコード済みPOSTボディ
-	 * @param HashMap<String,String> header  HTTPヘッダ
-	 * @return HashMap<Result,String>
+	 * @param postByte byte エンコード済みPOSTボディ
+	 * @param Map<String,String> header  HTTPヘッダ
+	 * @return Map<Result,String>
 	 * 		   key:RETCODE リターンコード。　
 	 * 		   key:BODY　ボディ。 リターンコード200以外はエラー前置詞をつけてコードを返す。
 	 * 		　　key:COOKIE 外部ホストから返されたcookie
 	 * @throws IOException
 	 */
-	public HashMap<Result, String> fetchPost(String urlStr,String postStr,
-													HashMap<String,String> header) {
+	public Map<Result, String> fetchPost(String urlStr,byte[] postByte,
+													Map<String,String> header) {
 
 		URLFetchService ufs = URLFetchServiceFactory.getURLFetchService();
-		URL url=null;
-		try {
-			url = new URL(urlStr);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
+		URL url = getUrl(urlStr);
 		FetchOptions fetchOptions = setCommonFetchOptions();
-		HTTPRequest request = new HTTPRequest(url, HTTPMethod.POST, fetchOptions);
-		Iterator<String> it = header.keySet().iterator();
-		while (it.hasNext()) {
-			String key = it.next();
-			request.addHeader(new HTTPHeader(key, header.get(key)));
-		}
-	    request.setPayload(postStr.getBytes());
+		HTTPRequest request = 
+				setRequestHeader(header, new HTTPRequest(url, HTTPMethod.POST, fetchOptions));
+	    request.setPayload(postByte);
 		HTTPResponse response = null;
 		try {
 			response = ufs.fetch(request);
@@ -159,7 +141,7 @@ public class UrlService {
 	 * @param formEntries <フィールド名,値>
 	 * @return String post文字列
 	 */
-	public String encodeFormToString(HashMap<String,String> formEnties) {
+	public byte[] encodeFormToString(Map<String,String> formEnties) {
 		StringBuffer sb = new StringBuffer();
 		Iterator<String> formEntry = formEnties.keySet().iterator();
 		boolean isAppend = false; 
@@ -186,7 +168,37 @@ public class UrlService {
 				e.printStackTrace();
 			}
 		}
-		    return sb.toString();
+		    return sb.toString().getBytes();
+	}
+
+	/** HTTP Request ヘッダーのセット
+	 * 
+	 * @param header
+	 * @param request
+	 * @return　HTTPRequest
+	 */
+	private HTTPRequest setRequestHeader(Map<String, String> header,
+			HTTPRequest request) {
+		Iterator<String> it = header.keySet().iterator();
+		while (it.hasNext()) {
+			String key = it.next();
+			request.addHeader(new HTTPHeader(key, header.get(key)));
+		}
+		return request;
+	}
+	/**URL取得
+	 * 
+	 * @param urlStr
+	 * @return
+	 */
+	private URL getUrl(String urlStr) {
+		URL url = null;
+		try {
+			url = new URL(urlStr);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		return url;
 	}
 	/**
 	 * Http　Fetchの共通オプションをセットする。
@@ -201,13 +213,13 @@ public class UrlService {
 	/**
 	 * HTTP Fetchのレスポンスからコンテキストを取り出す。
 	 * @param response HTTPResponse
-	 * @return HashMap<Result,String>
+	 * @return Map<Result,String>
 	 * 		   key:RETCODE リターンコード。　
 	 * 		   key:BODY　ボディ。 
 	 * 		　　key:COOKIE 外部ホストから返されたcookie
 	 */
-	private  HashMap<Result,String> getResponseVals(HTTPResponse response) {
-		HashMap<Result,String> returns = new HashMap<Result,String>();
+	private  Map<Result,String> getResponseVals(HTTPResponse response) {
+		Map<Result,String> returns = new HashMap<Result,String>();
 		int retcode = response.getResponseCode();
 		returns.put(Result.RETCODE, String.valueOf(retcode));
 		try {
