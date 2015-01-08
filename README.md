@@ -88,16 +88,12 @@ jakson-core-asi-1.7.0.jar
 
 ```java
    	UrlService urlService = new UrlService();
-  		Map<Result,String> results = 
+  		Results results = 
   						urlService.fetchGet(UrlString,
   									addCookie(CookieString,
   									addToken(tokenString,
   									setHeader(urlServie.ContentType.HTML))));
  ```
   
-戻り値の取り方は
-```java 
-  String retcode = results.get(urlServie.result.RETCODE);
-```
 
   
