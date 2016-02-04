@@ -96,7 +96,11 @@ public class GoogleLoginBar extends HorizontalPanel {
   public enum ScopeName {
     PICASA("https://picasaweb.google.com/data/"),
     BLOGGER("https://www.googleapis.com/auth/blogger"), 
-    BLOGGERV2("http://www.blogger.com/feeds/");
+    BLOGGERV2("http://www.blogger.com/feeds/"),
+    PLUSME("https://www.googleapis.com/auth/plus.me"),
+    PLUSLOGIN("https://www.googleapis.com/auth/plus.login"),
+    PLUSSTREAM("https://www.googleapis.com/auth/plus.stream.write");
+    
     public final String scopeUrl;
 
     private ScopeName(String scopeUrl) {
@@ -249,6 +253,7 @@ public class GoogleLoginBar extends HorizontalPanel {
         } else {
           googleUserName_ = loginInfo.getName();
           googleIconUrl_ = loginInfo.getPictureUrl();
+          googleInnerId_ = loginInfo.getUserID();
           dspLoginInfo(loginInfo); // ユーザー情報をログインバーへ表示する
           loginImage.addLoadHandler(new ImgLoadHandler()); // ユーザーアイコンのサイズ調整
         }

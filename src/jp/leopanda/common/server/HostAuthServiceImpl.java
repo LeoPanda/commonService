@@ -63,7 +63,9 @@ public class HostAuthServiceImpl extends RemoteServiceServlet implements HostAut
       while (jp.nextToken() != JsonToken.END_OBJECT) {
         final String fieldname = jp.getCurrentName();
         jp.nextToken();
-        if ("picture".equals(fieldname)) {
+        if("id".equals(fieldname)){
+        	loginInfo.setUserID(jp.getText());
+        } else if ("picture".equals(fieldname)) {
           loginInfo.setPictureUrl(jp.getText());
         } else if ("name".equals(fieldname)) {
           loginInfo.setName(jp.getText());
